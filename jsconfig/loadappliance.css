@@ -1,0 +1,69 @@
+/*
+   loadappliance.css: styles for the Loading display of the transit appliance
+   $Id$
+
+   Copyright 2010-2011 Portland Transport
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+   Authors:
+   Matt Conway: main code
+
+*/
+
+/* The wheel and the error messages don't scroll as the log does */
+#fixed { position: fixed;
+	 background-color: #ffffff; /* so that things don't show through */
+       }
+
+#wait { padding: 14px;
+	padding-right: 30px;
+	padding-top:0px;
+	border: 3px solid #ccc;
+	text-align: center;
+	border-radius: 10px;
+	font-family: 'Trebuchet MS', Helvetica, sans-serif;
+}
+
+/* Error message not displayed by default; the JS will display them if
+ need be */
+.err { display: none; 
+       background-color: #faa;
+       -moz-border-radius: 10px;
+       border-radius: 10px;
+       border: 3px solid #f00;
+       max-width: 750px;
+       padding: 10px;
+     }
+
+/* add the image */
+.errinner { background-image: url('error.png'); 
+	    background-repeat: no-repeat;
+	    /* position it left of the text, in the margin */
+	    background-position: left center;
+	    padding-left: 74px;
+	    padding-bottom: 25px;
+	  }
+
+.errtitle { font-family: 'Trebuchet MS', Helvetica, sans-serif; }
+.errmsg { font-family: serif; }
+.hwid { font-weight: bold; }
+
+/* the image returned from an app server */
+.pingimg { display: none }
+
+/* add display: none to hide log */
+/* padding-top: 90px prevents the first messages from being subsumed by the 
+   loading message */
+#log { font-family: monospace; } 
+

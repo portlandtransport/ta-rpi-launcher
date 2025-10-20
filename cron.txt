@@ -1,0 +1,10 @@
+# regularly check network connectivity
+0,10,20,30,40,50 * * * * root /transit-appliance/check_network.pl
+
+# communicate healthcheck ping from OS level
+0,30 * * * * root /transit-appliance/oshealth.pl
+
+0 * * * * root /transit-appliance/conditionally_reboot.pl
+
+@reboot root /transit-appliance/osstartup.pl
+

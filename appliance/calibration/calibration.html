@@ -1,0 +1,26 @@
+<html>
+	<head>
+		<script src="jquery-1.5.1.min.js"></script>
+		<script>
+			jQuery(document).ready(function(){
+				var height = jQuery("#main").height();
+				var width = jQuery("#main").width();
+				var center = width/2;
+				var middle = height/2;
+
+				jQuery("#left").css('position','absolute').css('left','0px').css('top',middle+'px');
+				jQuery("#right").css('position','absolute').css('right','0px').css('top',middle+'px');
+				jQuery("#top").css('position','absolute').css('left',center+'px').css('top','0px');
+				jQuery("#bottom").css('position','absolute').css('left',center+'px').css('bottom','0px');
+			});
+		</script>
+	</head>
+	<body style="margin: 0; padding: 0">
+		<div id="main" style="width: 100%; height: 100%; background-color: yellow">
+			<img id="left" src="pixel-ruler-left.jpg"></img>
+			<img id="top" src="pixel-ruler-top.jpg"></img>
+			<img id="right" src="pixel-ruler-right.jpg"></img>
+			<img id="bottom" src="pixel-ruler-bottom.jpg"></img>
+		</div>
+	</body>
+</html>

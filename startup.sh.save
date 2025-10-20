@@ -1,0 +1,30 @@
+#!/bin/bash
+
+mac=`/usr/bin/perl /etc/transit-appliance-loader/ma/usr/bin/perl /etc/transit-appliance-loader/osstartup.pl&
+
+#echo "the value is $mac"
+
+while true; do
+ /usr/bin/chromium-browser file:///etc/transit-appliance-loader/jsconfig/loadappliance.html \
+    --no-message-box \
+    --no-first-run \
+    --disable-restore-session-state \
+    --disable-breakpad \
+    --disable-desktop-notifications \
+    --kiosk \
+    --disable-gpu \
+    --disk-cache-dir=/dev/null \
+    --window-position=0,0 \
+    --start-fullscreen \
+    --incognito \
+    --noerrdialogs \
+    --disable-translate \
+    --no-first-run \
+    --fast \
+    --fast-start \
+    --disable-infobars \
+    --disable-features=TranslateUI \
+    --overscroll-history-navigation=0 \
+    --disable-pinch
+done
+
