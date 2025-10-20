@@ -9,7 +9,7 @@ $revision =~ s/\s+//g;
 my $starttime = time()*1000;
 my $osid = "MAC:".$mac.":OS";
 
-my $release = "R6.0.9";
+my $release = "R7.0.1";
 
 my $proposed_js = <<EOD
 // Overwrite this with actual HW ID
