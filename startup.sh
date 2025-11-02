@@ -9,7 +9,7 @@ counter=1
 while [ $counter -le 2 ]
 do
  ((counter++))
- /usr/bin/chromium-browser file:///etc/transit-appliance/jsconfig/loadappliance.html \
+ /usr/bin/chromium file:///etc/transit-appliance/jsconfig/loadappliance.html \
     --no-message-box \
     --no-first-run \
     --disable-restore-session-state \
