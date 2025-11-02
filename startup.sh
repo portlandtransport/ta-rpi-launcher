@@ -17,7 +17,7 @@ do
     --disable-desktop-notifications \
     --kiosk --ozone-platform=wayland --start-maximized --noerrdialogs --disable-infobars --enable-features=OverlayScrollbar \
     --disable-gpu \
-    --disk-cache-dir=/tmp \
+#    --disk-cache-dir=/tmp \
 #    --window-position=0,0 \
     --start-fullscreen \
     --incognito \
