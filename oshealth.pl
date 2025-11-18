@@ -6,11 +6,11 @@ use LWP::UserAgent;
 use JSON;
 use Data::Dumper;
 use URI qw( );
+use Getopt::Long;
 
-my $rec = `/sbin/ifconfig -a | grep "HWaddr"`;
-my ($field1, $field2, $field3, $field4, $mac) = split(/\s+/, $rec);
+my $verbose = '';       # option variable with default value (false)
 
-$mac = uc($mac);
+GetOptions ('verbose' => \$verbose);
 
 # get uptime from /proc/uptime
 open(IN,"</proc/uptime");
@@ -20,11 +20,17 @@ my ($up) = split(/\s/,$up_string); # gets us fractional seconds
 
 my $up_hours = $up/(60*60);
 
-#print "$up_hours\n";
+if ($verbose) {
+        print "Up hours (reboot at 12) $up_hours\n";
+}
+
 if ($up_hours >= 12) {
-	# fork bomb to trigger watchdog
-	#my $bomb = system(':(){ :|:& };:');
-	while () { fork() };
+        # fork bomb to trigger watchdog
+        if ($verbose) {
+                print "Would have done fork bomb here if we were not verbose!\n";
+        } else {
+                while () { fork() };
+        }
 }
 
 
@@ -38,28 +44,28 @@ $boot = int(($boot+5)/10)*10;
 my $ua = LWP::UserAgent->new();
 
 if (open(IN,"<:utf8","/tmp/osinfo.json")) {
-	my $json = "";
-	while (my $line =  <IN>) {
-		$json .= $line;
-	}
-	close(IN);
-	
-	my $content = from_json($json);
-	$content->{'timestamp'} = time()*1000;
-	$content->{'application_id'} = 'OS';
-	$content->{'application_name'} = 'OS';
-	$content->{'application_version'} = '';
-	$content->{'start_time'} = $boot*1000;
-	$content->{'wifi_strength'} = '';
-	
+        my $json = "";
+        while (my $line =  <IN>) {
+                $json .= $line;
+        }
+        close(IN);
+
+        my $content = from_json($json);
+        $content->{'timestamp'} = time()*1000;
+        $content->{'application_id'} = 'OS';
+        $content->{'application_name'} = 'OS';
+        $content->{'application_version'} = '';
+        $content->{'start_time'} = $boot*1000;
+        $content->{'wifi_strength'} = '';
+
     if (open(IN,"<:utf8","/sys/class/thermal/thermal_zone0/temp")) {
-    	my $rawtemp = "";
-    	while (my $line =  <IN>) {
-    		$rawtemp .= $line;
-    	}
-    	close(IN);
-    	my $temp = int($rawtemp/100)/10;
-    	$content->{'cputemp'} = $temp;
+        my $rawtemp = "";
+        while (my $line =  <IN>) {
+                $rawtemp .= $line;
+        }
+        close(IN);
+        my $temp = int($rawtemp/100)/10;
+        $content->{'cputemp'} = $temp;
     }
     
     my $memory = `/usr/bin/free -m | grep -i mem`;
@@ -80,29 +86,40 @@ if (open(IN,"<:utf8","/tmp/osinfo.json")) {
             $content->{'wifi_strength'} = $signal;
         } 
     }
-	
-	
-	my $response = $ua->post("https://ta-web-services.com/cron/".$content->{'id'}."/health_update",Content => $content);
-	
-	if ($response->code eq '200') {
-		my $reset = from_json($response->content);
-		if ($reset->{'reset'}) {
-			`/sbin/reboot`;
-		}
-	} else {
-		
-		my $url = URI->new('', 'https');
+
+if ($verbose) {
+        print "Sending content:\n";
+        print Dumper($content);
+}
+
+
+        my $response = $ua->post("https://ta-web-services.com/cron/".$content->{'id'}."/health_update",Content => $content);
+
+if ($verbose) {
+        print "Raw response:\n";
+        print Dumper($response);
+}
+
+
+        if ($response->code eq '200') {
+                my $reset = from_json($response->content);
+                if ($reset->{'reset'}) {
+                        `/sbin/reboot`;
+                }
+        } else {
+
+                my $url = URI->new('', 'https');
                 $url->query_form(%$content);
                 my $query = $url->query;
 
                 my $response = $ua->get("https://transitappliance.com/health_update.php?".$query);
 
-        	if ($response->code eq '200') {
-			my $reset = from_json($response->content);
-                	if ($reset->{'reset'}) {
-                        	`/sbin/reboot`;
-                	}
-		}
+                if ($response->code eq '200') {
+                        my $reset = from_json($response->content);
+                        if ($reset->{'reset'}) {
+                                `/sbin/reboot`;
+                        }
+                }
         }
 
 }
@@ -110,5 +127,6 @@ if (open(IN,"<:utf8","/tmp/osinfo.json")) {
 
 exit(0);
 
-#data: { timestamp: arrivals_object.start_time, start_time: arrivals_object.start_time, version: arrivals_object.version, id: arrivals_object.id, application_id: arrivals_object.input_params.applicationId, application_name: arrivals_object.input_params.applicationName, application_version: arrivals_object.input_params.applicationVersion, "height": jQuery(window).height(), "width": jQuery(window).width(), "platform": platform }
-							
+#data: { timestamp: arrivals_object.start_time, start_time: arrivals_object.start_time, version: arrivals_object.version, id: arrivals_object.id, application_id: arrivals_object.input_params.applicationId, a
+pplication_name: arrivals_object.input_params.applicationName, application_version: arrivals_object.input_params.applicationVersion, "height": jQuery(window).height(), "width": jQuery(window).width(), "platf
+orm": platform }
