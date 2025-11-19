@@ -3,6 +3,8 @@
 sleep 4
 mac=`/usr/bin/perl /etc/transit-appliance/mac.pl`
 
+/usr/bin/perl /etc/transit-appliance/oshealth.pl
+
 #echo "the value is $mac"
 
 counter=1

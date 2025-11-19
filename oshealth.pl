@@ -52,7 +52,7 @@ $boot = int(($boot+5)/10)*10;
 
 my $ua = LWP::UserAgent->new();
 
-my $content = from_json($json);
+my $content = {};
 $content->{'hwid'} = $mac;
 $content->{'pirev'} = $revision;
 $content->{'trrelease'} = $release;
