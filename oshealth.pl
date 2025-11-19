@@ -9,8 +9,9 @@ use URI qw( );
 use Getopt::Long;
 
 my $verbose = '';       # option variable with default value (false)
+my $startup = '';       # option variable with default value (false)
 
-GetOptions ('verbose' => \$verbose);
+GetOptions ('verbose' => \$verbose, 'startup' => \$startup);
 
 # get uptime from /proc/uptime
 open(IN,"</proc/uptime");
@@ -119,7 +120,7 @@ if ($response->code eq '200') {
 
         my $response = $ua->get("https://transitappliance.com/health_update.php?".$query);
 
-        if ($response->code eq '200') {
+        if ($response->code eq '200' && !$verbose && !$startup) {
                 my $reset = from_json($response->content);
                 if ($reset->{'reset'}) {
                         `/sbin/reboot`;
