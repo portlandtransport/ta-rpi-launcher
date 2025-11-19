@@ -33,6 +33,15 @@ if ($up_hours >= 12) {
         }
 }
 
+my $rec = `/sbin/ifconfig -a | grep "ether"`;
+my ($field1, $field2, $mac) = split(/\s+/, $rec);
+
+$mac = uc($mac);
+
+my $revision = `grep '^Revision' /proc/cpuinfo | cut -f2 -d':'`;
+
+my $release = "R7.0.3";
+
 
 
 
@@ -43,22 +52,18 @@ $boot = int(($boot+5)/10)*10;
 
 my $ua = LWP::UserAgent->new();
 
-if (open(IN,"<:utf8","/tmp/osinfo.json")) {
-        my $json = "";
-        while (my $line =  <IN>) {
-                $json .= $line;
-        }
-        close(IN);
+my $content = from_json($json);
+$content->{'hwid'} = $mac;
+$content->{'pirev'} = $revision;
+$content->{'trrelease'} = $release;
+$content->{'timestamp'} = time()*1000;
+$content->{'application_id'} = 'OS';
+$content->{'application_name'} = 'OS';
+$content->{'application_version'} = '';
+$content->{'start_time'} = $boot*1000;
+$content->{'wifi_strength'} = '';
 
-        my $content = from_json($json);
-        $content->{'timestamp'} = time()*1000;
-        $content->{'application_id'} = 'OS';
-        $content->{'application_name'} = 'OS';
-        $content->{'application_version'} = '';
-        $content->{'start_time'} = $boot*1000;
-        $content->{'wifi_strength'} = '';
-
-    if (open(IN,"<:utf8","/sys/class/thermal/thermal_zone0/temp")) {
+if (open(IN,"<:utf8","/sys/class/thermal/thermal_zone0/temp")) {
         my $rawtemp = "";
         while (my $line =  <IN>) {
                 $rawtemp .= $line;
@@ -66,26 +71,26 @@ if (open(IN,"<:utf8","/tmp/osinfo.json")) {
         close(IN);
         my $temp = int($rawtemp/100)/10;
         $content->{'cputemp'} = $temp;
-    }
-    
-    my $memory = `/usr/bin/free -m | grep -i mem`;
-    $content->{'memory'} = (split(/\s+/,$memory))[1];
+}
 
-    my $ethernet = `/sbin/ethtool eth0 | grep -i 'Link detected' | cut -d':' -f2`;
-    chomp($ethernet);
-    $ethernet =~ s/\s+//g;
-    
-    if (lc($ethernet eq 'yes')) {
+my $memory = `/usr/bin/free -m | grep -i mem`;
+$content->{'memory'} = (split(/\s+/,$memory))[1];
+
+my $ethernet = `/sbin/ethtool eth0 | grep -i 'Link detected' | cut -d':' -f2`;
+chomp($ethernet);
+$ethernet =~ s/\s+//g;
+
+if (lc($ethernet eq 'yes')) {
         $content->{'wifi_strength'} = 'Ethernet';
-    } else {
+} else {
         my $signal = `/sbin/iwconfig wlan0 | grep -i signal | cut -d'=' -f3`;
         chomp($signal);
         $signal =~ s/\s+$//;
 
         if ($signal =~ /dbm/i) {
-            $content->{'wifi_strength'} = $signal;
+                $content->{'wifi_strength'} = $signal;
         } 
-    }
+}
 
 if ($verbose) {
         print "Sending content:\n";
@@ -93,7 +98,7 @@ if ($verbose) {
 }
 
 
-        my $response = $ua->post("https://ta-web-services.com/cron/".$content->{'id'}."/health_update",Content => $content);
+my $response = $ua->post("https://ta-web-services.com/cron/".$content->{'id'}."/health_update",Content => $content);
 
 if ($verbose) {
         print "Raw response:\n";
@@ -101,32 +106,27 @@ if ($verbose) {
 }
 
 
+if ($response->code eq '200') {
+        my $reset = from_json($response->content);
+        if ($reset->{'reset'}) {
+                `/sbin/reboot`;
+        }
+} else {
+
+        my $url = URI->new('', 'https');
+        $url->query_form(%$content);
+        my $query = $url->query;
+
+        my $response = $ua->get("https://transitappliance.com/health_update.php?".$query);
+
         if ($response->code eq '200') {
                 my $reset = from_json($response->content);
                 if ($reset->{'reset'}) {
                         `/sbin/reboot`;
                 }
-        } else {
-
-                my $url = URI->new('', 'https');
-                $url->query_form(%$content);
-                my $query = $url->query;
-
-                my $response = $ua->get("https://transitappliance.com/health_update.php?".$query);
-
-                if ($response->code eq '200') {
-                        my $reset = from_json($response->content);
-                        if ($reset->{'reset'}) {
-                                `/sbin/reboot`;
-                        }
-                }
         }
-
 }
 
 
 exit(0);
 
-#data: { timestamp: arrivals_object.start_time, start_time: arrivals_object.start_time, version: arrivals_object.version, id: arrivals_object.id, application_id: arrivals_object.input_params.applicationId, a
-pplication_name: arrivals_object.input_params.applicationName, application_version: arrivals_object.input_params.applicationVersion, "height": jQuery(window).height(), "width": jQuery(window).width(), "platf
-orm": platform }
