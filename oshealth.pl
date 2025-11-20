@@ -55,6 +55,7 @@ my $ua = LWP::UserAgent->new();
 
 my $content = {};
 $content->{'hwid'} = $mac;
+$content->{'id'} = "MAC:".$mac.":OS";
 $content->{'pirev'} = $revision;
 $content->{'trrelease'} = $release;
 $content->{'timestamp'} = time()*1000;
@@ -110,7 +111,10 @@ if ($verbose) {
 if ($response->code eq '200') {
         my $reset = from_json($response->content);
         if ($reset->{'reset'}) {
-                `/sbin/reboot`;
+                if (!$startup && !$verbose) {
+                        `/sbin/reboot`;
+                }
+                
         }
 } else {
 
@@ -130,4 +134,3 @@ if ($response->code eq '200') {
 
 
 exit(0);
-
